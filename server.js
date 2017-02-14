@@ -20,6 +20,11 @@ var todos = [{
     desc: "Walk down stairs.",
     completed: true
 
+},{
+    id: 4,
+    desc: "Take a break.",
+    completed: false
+
 }];
 app.get('/', function (req, res) {
     res.send('Todo API Root');
