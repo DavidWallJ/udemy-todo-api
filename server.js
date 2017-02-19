@@ -4,6 +4,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var _ = require('underscore');
+var db = require('./db');
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -16,7 +17,7 @@ app.get('/', function (req, res) {
     res.send('Todo API Root');
 });
 
-// GET /todos?completed=value
+// GET /todos?completed=value&q=string
 app.get('/todos', function (req, res) {
     var queryParams = req.query;
     var filteredTodos = todos;
@@ -27,8 +28,18 @@ app.get('/todos', function (req, res) {
         filteredTodos = _.where(filteredTodos, {completed: false});
     }
 
+    // _.filter & indexOf()
+
+    if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+        filteredTodos = _.filter(filteredTodos, function (todo) {
+            return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
+            // if indexof returns a number greater than -1. we get true. if not, we get false.  _.filter function requires a function as it's second parameter that then returns either true or false for each iteration through the filteredTodos list
+        });
+    }
+
     res.json(filteredTodos);
 });
+
 
 // GET /todos/:id
 app.get('/todos/:id', function (req, res) {
@@ -43,21 +54,26 @@ app.get('/todos/:id', function (req, res) {
 
 });
 
+
 // POST /todos
 app.post('/todos', function (req, res) {
     var body = _.pick(req.body, 'description', 'completed');
 
-    if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-        return res.status(400).send();
-    }
+    // call create on db.todo
+    // respond with a 200 and todo
+    // if fails res.status(400)json(e)
 
-    body.description = body.description.trim();
-
-    body.id = todoNextId++;
-
-    todos.push(body);
-
-    res.json(body);
+    // if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+    //     return res.status(400).send();
+    // }
+    //
+    // body.description = body.description.trim();
+    //
+    // body.id = todoNextId++;
+    //
+    // todos.push(body);
+    //
+    // res.json(body);
 });
 
 // DELETE /todos/:id
@@ -99,8 +115,9 @@ app.put('/todos/:id', function (req, res) {
 
 });
 
-
-
-app.listen(PORT, function () {
-   console.log(`Express is listening on ${PORT}!`);
+db.sequelize.sync().then(function () {
+    app.listen(PORT, function () {
+        console.log(`Express is listening on ${PORT}!`);
+    });
 });
+
