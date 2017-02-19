@@ -62,7 +62,19 @@ app.post('/todos', function (req, res) {
     // call create on db.todo
     // respond with a 200 and todo
     // if fails res.status(400)json(e)
+    db.todo.create(body).then(function (todo) {
+        res.json(todo.toJSON())
+    }, function (e) {
+        res.status(400).json(e);
+    });
 
+    // Todo.create({
+    //     description: "Walk the cat."
+    // }).then(function (todo) {
+    //     return Todo.create({
+    //         description: "Water the cat.",
+    //         completed: true
+    //     });
     // if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
     //     return res.status(400).send();
     // }
