@@ -19,25 +19,27 @@ app.get('/', function (req, res) {
 
 // GET /todos?completed=value&q=string
 app.get('/todos', function (req, res) {
-    var queryParams = req.query;
-    var filteredTodos = todos;
+    var query = req.query;
+    var where = {};
 
-    if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-        filteredTodos = _.where(filteredTodos, {completed: true});
-    } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-        filteredTodos = _.where(filteredTodos, {completed: false});
+    if (query.hasOwnProperty('completed') && query.completed === 'true') {
+        where.completed = true;
+    } else if (query.hasOwnProperty('completed') && query.completed === 'false') {
+        where.completed = false;
     }
 
-    // _.filter & indexOf()
-
-    if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-        filteredTodos = _.filter(filteredTodos, function (todo) {
-            return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
-            // if indexof returns a number greater than -1. we get true. if not, we get false.  _.filter function requires a function as it's second parameter that then returns either true or false for each iteration through the filteredTodos list
-        });
+    if (query.hasOwnProperty('q') && query.q.length > 0) {
+        where.description = {
+            $like: `%${query.q}%`
+        }
     }
 
-    res.json(filteredTodos);
+    db.todo.findAll({where: where}).then(function (todos) {
+        res.json(todos)
+    }, function (e) {
+        res.status(500).send();
+    });
+
 });
 
 
