@@ -22,58 +22,42 @@ var Todo = sequelize.define('todo', {
     }
 });
 
+var user = sequelize.define('user', {
+    email:{
+        type: Sequelize.STRING
+    }
+});
+
+Todo.belongsTo(user);
+user.hasMany(Todo);
+
 sequelize.sync({
     // force: true
 }).then(function () {
     console.log('Everything has been synced :)');
-    // *Aside: if you f up your table the first time around you can set {force: true} as the sequelize.sync() attribute and it will wipe the table and then go from there or if you just want to reset the table everytime.
 
-    Todo.findById(3).then(function (todo) {
-        if (todo) {
-            console.log(todo.toJSON());
-        } else {
-            console.log("Entry by this Id does not exist");
-        }
+    user.findById(1).then(function (user) {
+       user.getTodos({
+           where: {
+               completed: false
+           }
+       }).then(function (todos) {
+           todos.forEach(function (todo) {
+               console.log(todo.toJSON());
+           })
+       })
     });
-
-
-
-    // Todo.create({
-    //     description: "Walk the cat."
-    // }).then(function (todo) {
-    //     return Todo.create({
-    //         description: "Water the cat.",
-    //         completed: true
-    //     });
-    //     // Insert
+    // user.create({
+    //     email: 'davejwall@gmail.com'
     // }).then(function () {
-    //     // return Todo.findById(1);
-    //     // get by id
-    //
-    //     return Todo.findAll({
-    //         where: {
-    //             description: {
-    //                 $like: '%cat%'
-    //             }
-    //         }
-
-            // where: {
-            //     completed: true
-            // }
-
-        // });
-        // find all that have completed set to false
-    // }).then(function (todos) {
-    //     if (todos) {
-    //         todos.forEach(function (todo) {
-    //             console.log(todo.toJSON());
-    //         });
-    //         // found items information
-    //     } else {
-    //         console.log('No todo found :/');
-    //     }
-    // }).catch(function (e) {
-    //     console.log(e.message);
-    // });
+    //     return Todo.create({
+    //         description: "Clean table",
+    //         completed: false
+    //     });
+    // }).then(function (todo) {
+    //     user.findById(1).then(function (user) {
+    //         user.addTodo(todo);
+    //     })
+    // })
 });
 
